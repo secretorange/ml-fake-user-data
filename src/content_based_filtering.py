@@ -1,9 +1,9 @@
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-def calculate_user_similarity(user_id, user_profiles, item_features):
+def calculate_user_similarity(user_index, user_profiles, item_features):
     # Get the user profile (as a dense array if it's not already)
-    user_profile = user_profiles.loc[user_id].to_numpy().reshape(1, -1)  # Ensure it's a 2D array
+    user_profile = user_profiles.loc[user_index].to_numpy().reshape(1, -1)  # Ensure it's a 2D array
 
     # Calculate the cosine similarity between this user's profile and all item profiles
     similarity_scores = cosine_similarity(user_profile, item_features.to_numpy())
