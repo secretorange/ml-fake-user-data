@@ -19,3 +19,8 @@ def calculate_user_similarity(user_id, user_profiles, item_features):
     df.columns = ['score']
 
     return df
+
+def build_user_profiles(interaction_csr_matrix, item_features):
+    user_profiles = interaction_csr_matrix.dot(item_features.values)
+
+    return pd.DataFrame(user_profiles, columns=item_features.columns)
