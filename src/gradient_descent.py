@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 
 from recommender_base import RecommenderBase
 
-class NMFRecommender(RecommenderBase):
+class GradientDescentRecommender(RecommenderBase):
     def __init__(self, number_of_components=2, learning_rate=0.01, epochs=100, batch_size=10000):
         super().__init__()
         self.number_of_components = number_of_components
