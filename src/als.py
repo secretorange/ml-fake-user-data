@@ -7,6 +7,9 @@ class ALSRecommender(RecommenderBase):
     def __init__(self, number_of_components=2, regularization=0.1, iterations=20):
         super().__init__()
         self.number_of_components = number_of_components
+        self.regularization = regularization
+        self.iterations = iterations
+
 
     def build(self, interaction_csr_matrix):
         n_components = min(self.number_of_components, min(interaction_csr_matrix.shape[0], interaction_csr_matrix.shape[1]))
