@@ -21,7 +21,7 @@ class RecommenderBase:
         """
         raise NotImplementedError("Subclasses should implement this method.")
     
-    def _sort(scores, top_k):
+    def _sort(self, scores, top_k):
         top_k_indices = np.argsort(-scores)[:top_k]
 
         # Get the corresponding similarity scores
