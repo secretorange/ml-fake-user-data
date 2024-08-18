@@ -1,3 +1,4 @@
+import numpy as np
 
 class RecommenderBase:
     def __init__(self):
@@ -19,3 +20,14 @@ class RecommenderBase:
         list: A list of predicted items or ratings for the user.
         """
         raise NotImplementedError("Subclasses should implement this method.")
+    
+    def _sort(scores, top_k):
+        top_k_indices = np.argsort(-scores)[:top_k]
+
+        # Get the corresponding similarity scores
+        top_k_scores = scores[top_k_indices]
+
+        # Combine indices and scores into a list of tuples
+        top_k_results = list(zip(top_k_indices, top_k_scores))
+
+        return top_k_results
