@@ -23,4 +23,7 @@ class SVDRecommender(RecommenderBase):
         # Calculate the user-specific vector by multiplying the U matrix row with sigma
         user_vector = np.dot(self.U[user_idx], self.sigma)
 
-        return self._sort(user_vector, top_k)
+        # Calculate the score for each item by multiplying the user vector with the Vt matrix
+        user_scores = np.dot(user_vector, self.Vt)
+
+        return self._sort(user_scores, top_k)
