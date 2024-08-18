@@ -3,7 +3,7 @@ import numpy as np
 
 from recommender_base import RecommenderBase
 
-class NMFRecommender(RecommenderBase):
+class ALSRecommender(RecommenderBase):
     def __init__(self, number_of_components=2, regularization=0.1, iterations=20):
         super().__init__()
         self.number_of_components = number_of_components
