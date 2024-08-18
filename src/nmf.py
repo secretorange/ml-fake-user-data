@@ -2,34 +2,31 @@ from sklearn.decomposition import NMF
 from sklearn.preprocessing import MaxAbsScaler
 import numpy as np
 
-def build_nmf(interaction_csr_matrix, number_of_components):
-    # scaler = MaxAbsScaler()
-    # interaction_matrix_masked_normalized = scaler.fit_transform(interaction_matrix_masked)
+from recommender_base import RecommenderBase
 
-    n_components = min(number_of_components, min(interaction_csr_matrix.shape[0], interaction_csr_matrix.shape[1]))
+class NMFRecommender(RecommenderBase):
+    def __init__(self, number_of_components):
+        super().__init__()
+        self.number_of_components = number_of_components
 
-    # Apply NMF
-    nmf = NMF(n_components=n_components, init='nndsvd', random_state=0, verbose=True)
-    W = nmf.fit_transform(interaction_csr_matrix)
-    H = nmf.components_
+    def build(self, interaction_csr_matrix):
+        n_components = min(self.number_of_components, min(interaction_csr_matrix.shape[0], interaction_csr_matrix.shape[1]))
 
-    return (W, H)
+        nmf = NMF(n_components=n_components, init='nndsvd', random_state=0, verbose=True)
+        self.W = nmf.fit_transform(interaction_csr_matrix)
+        self.H = nmf.components_
 
+    def predict(self, user_idx, top_k):
+        # Compute the predicted ratings for this user using W and H
+        user_ratings = np.dot(self.W[user_idx, :], self.H)
 
-def recommend(W, H, user_index, top_n):
-    # Compute the predicted ratings for this user using W and H
-    user_ratings = np.dot(W[user_index, :], H)
+        # Get the indices of the top K recommendations
+        top_k_indices = np.argsort(-user_ratings)[:top_k]
 
-    # Get the indices of the top N recommendations
-    top_item_indices = np.argsort(-user_ratings)[:top_n]
+        # Get the corresponding similarity scores
+        top_k_scores = user_ratings[top_k_indices]
 
-    # Map the item indices back to the item IDs
-    item_ids = interaction_matrix.indices[top_item_indices]
+        # Combine indices and scores into a list of tuples
+        top_k_results = list(zip(top_k_indices, top_k_scores))
 
-    # Store the results in a list
-    user_recommendations = {
-        'user_id': interaction_matrix.indices[user_index],
-        'item_id': items_df.iloc[top_item_indices]['item_id'].tolist()
-    }
-
-    return pd.DataFrame(user_recommendations)
+        return top_k_results
