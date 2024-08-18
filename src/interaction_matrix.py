@@ -105,12 +105,13 @@ class InteractionMatrixBuilder:
         self.item_col = item_col
         self.interaction_config = interaction_config
 
-    def build(self, interactions_df):
+    def build(self, interactions_df, item_ids):
         # Create mappings from user_id and item_id to row and column indices
         user_to_index = {user_id: idx for idx, user_id in enumerate(interactions_df[self.user_col].unique())}
         index_to_user = {idx: user_id for user_id, idx in user_to_index.items()}
         
-        item_to_index = {item_id: idx for idx, item_id in enumerate(interactions_df[self.item_col].unique())}
+        # Create the item_to_index mapping using the provided items array to maintain order
+        item_to_index = {item_id: idx for idx, item_id in enumerate(item_ids)}
         index_to_item = {idx: item_id for item_id, idx in item_to_index.items()}
 
         # Current time
@@ -135,9 +136,6 @@ class InteractionMatrixBuilder:
             'weighted_value': 'sum'
         }).reset_index()
 
-        # # Apply log scale and any other adjustments
-
-
         # Create a new column to store the thresholds
         print('Thresholds')
         interaction_sums['threshold'] = interaction_sums['type'].map(lambda x: self.interaction_config[x]['threshold'])
@@ -156,7 +154,7 @@ class InteractionMatrixBuilder:
 
         # Initialize sparse matrix using scipy's dok_matrix
         print('Init Sparse Matrix')
-        interaction_matrix = dok_matrix((len(user_to_index), len(item_to_index)), dtype=np.float32)
+        interaction_matrix = dok_matrix((len(user_to_index), len(item_ids)), dtype=np.float32)  # Dimension based on items array
 
         # Map user_id and item_id to indices
         print('Map user_id and item_id')
@@ -171,10 +169,10 @@ class InteractionMatrixBuilder:
         item_indices = np.array([item_to_index[item_id] for item_id in item_ids])
 
         # Collect the updates into COO format
-        print('Create Upddate Matrix')
+        print('Create Update Matrix')
         update_matrix = coo_matrix((final_values, (user_indices, item_indices)), shape=interaction_matrix.shape)
 
-        print('Convert Interation Matric to CSR Matrix')
+        print('Convert Interaction Matrix to CSR Matrix')
         interaction_matrix = interaction_matrix.tocsr()
 
         # Apply the updates to the original sparse matrix
