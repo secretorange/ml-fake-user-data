@@ -20,7 +20,7 @@ class ALSRecommender(RecommenderBase):
         self.model.fit(interaction_csr_matrix)
 
     def predict(self, user_idx, top_k):
-        top_k_results = self.model.recommend(user_idx, self.interaction_csr_matrix[user_idx], N=top_k)
+        top_k_results = self.model.recommend(user_idx, N=top_k, filter_already_liked_items=False)
 
         return top_k_results
  
