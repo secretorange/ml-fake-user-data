@@ -40,6 +40,26 @@ def item_similarity(item1, item2, similarity_matrix=None):
         # If no similarity matrix is provided, use a dummy similarity (e.g., 0)
         return 0
 
+def calculate_item_popularity(interaction_matrix):
+    """
+    Calculate the popularity of each item based on user-item interactions.
+
+    Parameters:
+    interaction_matrix (scipy.sparse matrix): The user-item interaction matrix.
+
+    Returns:
+    dict: A dictionary where keys are item indices and values are the popularity scores (e.g., counts).
+    """
+
+    # Sum the interaction matrix along the rows (axis=0) to get the count of interactions per item
+    # Convert the resulting array to a flat list and enumerate to create a dictionary
+    item_popularity = np.array(interaction_matrix.sum(axis=0)).flatten()
+    
+    # Convert to dictionary: item index as key and its popularity as value
+    item_popularity_dict = {item_index: popularity for item_index, popularity in enumerate(item_popularity)}
+
+    return item_popularity_dict
+
 # Function to compute intra-list diversity (ILD)
 def intra_list_diversity(prediction_indexes, similarity_matrix=None):
     if len(prediction_indexes) <= 1:
@@ -93,10 +113,21 @@ def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_p
 
     return precision, recall, mrr, ndcg, diversity, novelty_score
 
-def compute_metrics(interaction_matrix, recommender, k=5, relevance_threshold=3.0):
-  n_jobs = -1  # Use all available cores
-  results = Parallel(n_jobs=n_jobs)(delayed(compute_metrics_for_user)(
-      user_index, recommender, interaction_matrix, k, relevance_threshold
-  ) for user_index in tqdm(range(interaction_matrix.shape[0])))
+def compute_metrics(interaction_matrix, recommender, k=5, relevance_threshold=3.0):    
+    # Calculate item popularity outside the loop
+    item_popularity = calculate_item_popularity(interaction_matrix)
 
-  return results
+    # Initialize an empty list to store results
+    results = []
+
+    # Loop through each user index in the interaction matrix
+    for user_index in tqdm(range(interaction_matrix.shape[0]), position=0, leave=True):
+        # Compute metrics for the current user
+        user_metrics = compute_metrics_for_user(
+            user_index, recommender, interaction_matrix, item_popularity, None, k, relevance_threshold
+        )
+        
+        # Append the computed metrics to the results list
+        results.append(user_metrics)
+
+    return results
