@@ -75,7 +75,7 @@ class GradientDescentRecommender(RecommenderBase):
         # Compute the predicted ratings for this user using W and H
         user_scores = tf.matmul(self.W[user_idx:user_idx+1], self.H).numpy().flatten()
 
-        if item_indices == None:
+        if item_indices is None:
             return self._sort(user_scores, top_k)
         else:
             return self._prepare(user_scores, item_indices)
