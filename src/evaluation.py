@@ -78,8 +78,12 @@ def novelty(prediction_indexes, item_popularity):
     if len(prediction_indexes) == 0:
         return 0.0
     novelty_score = 0.0
+    total_items = len(item_popularity)
     for item in prediction_indexes:
-        novelty_score += -np.log(item_popularity.get(item, 1) / len(item_popularity))
+        # Ensure a minimum popularity value to avoid log(0)
+        item_pop = max(item_popularity.get(item, 1), 1e-9)  # Use a small value like 1e-9 to avoid log(0)
+        novelty_score += -np.log(item_pop / total_items)
+
     return novelty_score / len(prediction_indexes)
 
 
@@ -91,8 +95,11 @@ def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_p
     # Extract the item indices from the predictions
     prediction_indexes = np.array([item[0] for item in predictions], dtype=int)
 
+
     # Extract the interaction scores for the predicted items
     scores = interaction_matrix[user_index, prediction_indexes].toarray().flatten()
+
+
 
     # Apply the relevance threshold
     relevance = (scores > relevance_threshold).astype(int)
@@ -113,7 +120,7 @@ def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_p
 
     return precision, recall, mrr, ndcg, diversity, novelty_score
 
-def compute_metrics(interaction_matrix, recommender, k=5, relevance_threshold=3.0):    
+def compute_metrics(interaction_matrix, recommender, similarity_matrix, k=5, relevance_threshold=3.0):    
     # Calculate item popularity outside the loop
     item_popularity = calculate_item_popularity(interaction_matrix)
 
@@ -124,7 +131,7 @@ def compute_metrics(interaction_matrix, recommender, k=5, relevance_threshold=3.
     for user_index in tqdm(range(interaction_matrix.shape[0]), position=0, leave=True):
         # Compute metrics for the current user
         user_metrics = compute_metrics_for_user(
-            user_index, recommender, interaction_matrix, item_popularity, None, k, relevance_threshold
+            user_index, recommender, interaction_matrix, item_popularity, similarity_matrix, k, relevance_threshold
         )
         
         # Append the computed metrics to the results list

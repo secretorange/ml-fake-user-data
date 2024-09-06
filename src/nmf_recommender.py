@@ -16,17 +16,11 @@ class NMFRecommender(RecommenderBase):
         self.W = nmf.fit_transform(interaction_csr_matrix)
         self.H = nmf.components_
 
-    def predict(self, user_idx, top_k):
+    def predict(self, user_idx, top_k, item_indices=None):
         # Compute the predicted ratings for this user using W and H
-        user_ratings = np.dot(self.W[user_idx, :], self.H)
+        user_scores = np.dot(self.W[user_idx, :], self.H)
 
-        # Get the indices of the top K recommendations
-        top_k_indices = np.argsort(-user_ratings)[:top_k]
-
-        # Get the corresponding similarity scores
-        top_k_scores = user_ratings[top_k_indices]
-
-        # Combine indices and scores into a list of tuples
-        top_k_results = list(zip(top_k_indices, top_k_scores))
-
-        return top_k_results
+        if item_indices == None:
+            return self._sort(user_scores, top_k)
+        else:
+            return self._prepare(self, user_scores, item_indices)

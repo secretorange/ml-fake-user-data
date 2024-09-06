@@ -8,7 +8,7 @@ class RecommenderBase:
     def build(self):
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def predict(self, user_idx):
+    def predict(self, user_idx, top_k, item_idx=-1):
         """
         This method should be overridden by subclasses.
         It is intended to predict items or ratings for a given user.
@@ -24,10 +24,14 @@ class RecommenderBase:
     def _sort(self, scores, top_k):
         top_k_indices = np.argsort(-scores)[:top_k]
 
+        return self._prepare(scores, top_k_indices)
+    
+    def _prepare(self, scores, indices):
+ 
         # Get the corresponding similarity scores
-        top_k_scores = scores[top_k_indices]
+        top_k_scores = scores[indices]
 
         # Combine indices and scores into a list of tuples
-        top_k_results = list(zip(top_k_indices, top_k_scores))
+        top_k_results = list(zip(indices, top_k_scores))
 
         return top_k_results

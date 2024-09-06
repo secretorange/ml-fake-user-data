@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import numpy as np
 from scipy.sparse import csr_matrix
 
 from recommender_base import RecommenderBase
@@ -20,10 +19,20 @@ class GradientDescentRecommender(RecommenderBase):
 
         n_components = min(self.number_of_components, min(interaction_csr_matrix.shape[0], interaction_csr_matrix.shape[1]))
 
+
         # Convert the sparse matrix to a TensorFlow SparseTensor
-        sparse_tf = tf.sparse.SparseTensor(indices=np.array([interaction_csr_matrix.nonzero()[0], interaction_csr_matrix.nonzero()[1]]).T,
-                                            values=interaction_csr_matrix.data.astype(np.float32),  # Ensure the data is float32
-                                            dense_shape=interaction_csr_matrix.shape)
+        indices = np.vstack((interaction_csr_matrix.nonzero()[0], interaction_csr_matrix.nonzero()[1])).T
+        sparse_tf = tf.sparse.SparseTensor(
+            indices=indices.astype(np.int64),  # Ensure the indices are int64
+            values=interaction_csr_matrix.data.astype(np.float32),  # Ensure the data is float32
+            dense_shape=interaction_csr_matrix.shape
+        )
+
+
+        # # Convert the sparse matrix to a TensorFlow SparseTensor
+        # sparse_tf = tf.sparse.SparseTensor(indices=np.array([interaction_csr_matrix.nonzero()[0], interaction_csr_matrix.nonzero()[1]]).T,
+        #                                     values=interaction_csr_matrix.data.astype(np.float32),  # Ensure the data is float32
+        #                                     dense_shape=interaction_csr_matrix.shape)
         
         # Initialize W and H matrices with random non-negative values
         self.W = tf.Variable(tf.random.normal([interaction_csr_matrix.shape[0], n_components]), dtype=tf.float32)
@@ -45,7 +54,9 @@ class GradientDescentRecommender(RecommenderBase):
                     A_batch_indices = tf.gather(sparse_tf.indices, batch_indices)
 
                     # Adjust indices for the batch
-                    A_batch_indices_adjusted = A_batch_indices - tf.constant([i, 0], dtype=tf.int64)
+                    A_batch_indices_adjusted = tf.cast(A_batch_indices - tf.constant([i, 0], dtype=tf.int64), dtype=tf.int64)
+
+                    # A_batch_indices_adjusted = A_batch_indices - tf.constant([i, 0], dtype=tf.int64)
 
                     # Extract the corresponding WH values for these indices
                     WH_sparse_values = tf.gather_nd(WH, A_batch_indices_adjusted)
@@ -60,9 +71,12 @@ class GradientDescentRecommender(RecommenderBase):
             if (epoch + 1) % 10 == 0:
                 print(f'Epoch {epoch + 1}, Loss: {loss.numpy()}')
 
-    def predict(self, user_idx, top_k):
-         # Compute the predicted ratings for this user using W and H
-        user_ratings = np.dot(self.W[user_idx, :], self.H)
+    def predict(self, user_idx, top_k, item_indices=None):
+        # Compute the predicted ratings for this user using W and H
+        user_scores = tf.matmul(self.W[user_idx:user_idx+1], self.H).numpy().flatten()
 
-        return self._sort(user_ratings, top_k)
+        if item_indices == None:
+            return self._sort(user_scores, top_k)
+        else:
+            return self._prepare(self, user_scores, item_indices)
  

@@ -19,7 +19,18 @@ class ALSRecommender(RecommenderBase):
 
         self.model.fit(interaction_csr_matrix)
 
-    def predict(self, user_idx, top_k):
-        top_k_results = self.model.recommend(user_idx, user_items=[], N=top_k, filter_already_liked_items=False)
+    def predict(self, user_idx, top_k, item_indices=None):
+        if item_indices is None:
+            # Get the top K recommendations for the user
+            top_k_results = self.model.recommend(user_idx, user_items=[], N=top_k, filter_already_liked_items=False)
 
-        return np.column_stack(top_k_results)
+            # top_k_results is a tuple of (item_indices, scores)
+            top_k_indices, top_k_scores = top_k_results
+        else:
+            # Score the specific items for the user using rank_items
+            top_k_results = self.model.rank_items(user_idx, user_items=[], selected_items=item_indices)
+            # top_k_results is a tuple of (item_indices, scores)
+            top_k_indices, top_k_scores = zip(*top_k_results)
+
+        # Combine indices and scores into a list of tuples and return
+        return list(zip(top_k_indices, top_k_scores))

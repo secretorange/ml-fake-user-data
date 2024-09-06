@@ -19,11 +19,14 @@ class SVDRecommender(RecommenderBase):
         # Convert sigma into a diagonal matrix for easy multiplication
         self.sigma = np.diag(self.sigma)
 
-    def predict(self, user_idx, top_k):    
+    def predict(self, user_idx, top_k, item_indices=None):    
         # Calculate the user-specific vector by multiplying the U matrix row with sigma
         user_vector = np.dot(self.U[user_idx], self.sigma)
 
         # Calculate the score for each item by multiplying the user vector with the Vt matrix
         user_scores = np.dot(user_vector, self.Vt)
 
-        return self._sort(user_scores, top_k)
+        if item_indices == None:
+            return self._sort(user_scores, top_k)
+        else:
+            return self._prepare(self, user_scores, item_indices)
