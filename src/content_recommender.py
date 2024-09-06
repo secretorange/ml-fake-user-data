@@ -14,23 +14,28 @@ class ContentRecommender(RecommenderBase):
 
         #return pd.DataFrame(user_profiles, columns=item_features.columns)
 
-    def predict(self, user_idx, top_k):
+    def predict(self, user_idx, top_k, item_indices=None):
         # Get the user profile (as a dense array if it's not already)
         user_profile = self.user_profiles[user_idx].reshape(1, -1)  # Ensure it's a 2D array
 
         # Calculate the cosine similarity between this user's profile and all item profiles
         similarity_scores = cosine_similarity(user_profile, self.item_features).flatten()
 
-        # Get the indices of the top K recommendations
-        top_k_indices = np.argsort(-similarity_scores)[:top_k]
+        if item_indices is None:
+            return self._sort(similarity_scores, top_k)
+        else:
+            return self._prepare(self, similarity_scores, item_indices)
+        
+        # # Get the indices of the top K recommendations
+        # top_k_indices = np.argsort(-similarity_scores)[:top_k]
 
-        # Get the corresponding similarity scores
-        top_k_scores = similarity_scores[top_k_indices]
+        # # Get the corresponding similarity scores
+        # top_k_scores = similarity_scores[top_k_indices]
 
-        # Combine indices and scores into a list of tuples
-        top_k_results = list(zip(top_k_indices, top_k_scores))
+        # # Combine indices and scores into a list of tuples
+        # top_k_results = list(zip(top_k_indices, top_k_scores))
 
-        return top_k_results
+        # return top_k_results
 
 # def calculate_user_similarity(user_index, user_profiles, item_features):
 #     # Get the user profile (as a dense array if it's not already)

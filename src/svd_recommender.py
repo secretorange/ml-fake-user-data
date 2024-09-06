@@ -26,7 +26,7 @@ class SVDRecommender(RecommenderBase):
         # Calculate the score for each item by multiplying the user vector with the Vt matrix
         user_scores = np.dot(user_vector, self.Vt)
 
-        if item_indices == None:
+        if item_indices is None:
             return self._sort(user_scores, top_k)
         else:
             return self._prepare(self, user_scores, item_indices)

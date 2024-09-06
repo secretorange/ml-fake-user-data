@@ -20,7 +20,7 @@ class NMFRecommender(RecommenderBase):
         # Compute the predicted ratings for this user using W and H
         user_scores = np.dot(self.W[user_idx, :], self.H)
 
-        if item_indices == None:
+        if item_indices is None:
             return self._sort(user_scores, top_k)
         else:
             return self._prepare(self, user_scores, item_indices)

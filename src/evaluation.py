@@ -89,17 +89,17 @@ def novelty(prediction_indexes, item_popularity):
 
 # Define a function that computes metrics for a single user
 def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_popularity, similarity_matrix=None, k=5, relevance_threshold=3.0):
-    # Get predictions (top-N items) for the user
-    predictions = recommender.predict(user_idx=user_index, top_k=k)
+
+    item_indices = interaction_matrix[user_index].nonzero()[1]
+
+    # Predict ratings for the items the user has interacted with
+    item_predictions = recommender.predict(user_idx=user_index, top_k=k, item_indices=item_indices)
 
     # Extract the item indices from the predictions
-    prediction_indexes = np.array([item[0] for item in predictions], dtype=int)
-
+    item_prediction_indexes = np.array([item[0] for item in item_predictions], dtype=int)
 
     # Extract the interaction scores for the predicted items
-    scores = interaction_matrix[user_index, prediction_indexes].toarray().flatten()
-
-
+    scores = interaction_matrix[user_index, item_prediction_indexes].toarray().flatten()
 
     # Apply the relevance threshold
     relevance = (scores > relevance_threshold).astype(int)
@@ -115,6 +115,13 @@ def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_p
     ndcg = ndcg_at_k(relevance, k)
 
     # Calculate diversity and novelty
+
+    # Get predictions (top-N items) for the user
+    predictions = recommender.predict(user_idx=user_index, top_k=k)
+
+    # Extract the item indices from the predictions
+    prediction_indexes = np.array([item[0] for item in predictions], dtype=int)
+
     diversity = intra_list_diversity(prediction_indexes, similarity_matrix)
     novelty_score = novelty(prediction_indexes, item_popularity)
 
