@@ -24,7 +24,7 @@ class ContentRecommender(RecommenderBase):
         if item_indices is None:
             return self._sort(similarity_scores, top_k)
         else:
-            return self._prepare(self, similarity_scores, item_indices)
+            return self._prepare(similarity_scores, item_indices)
         
         # # Get the indices of the top K recommendations
         # top_k_indices = np.argsort(-similarity_scores)[:top_k]

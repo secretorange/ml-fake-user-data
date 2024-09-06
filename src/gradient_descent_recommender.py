@@ -78,5 +78,5 @@ class GradientDescentRecommender(RecommenderBase):
         if item_indices == None:
             return self._sort(user_scores, top_k)
         else:
-            return self._prepare(self, user_scores, item_indices)
+            return self._prepare(user_scores, item_indices)
  
