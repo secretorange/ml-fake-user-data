@@ -88,9 +88,13 @@ def novelty(prediction_indexes, item_popularity):
 
 
 # Define a function that computes metrics for a single user
-def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_popularity, similarity_matrix=None, k=5, relevance_threshold=3.0):
+def compute_metrics_for_user(user_index, recommender, interaction_matrix, item_popularity, similarity_matrix=None, k=5, relevance_threshold=3.0, use_interacted_items=False):
 
-    item_indices = interaction_matrix[user_index].nonzero()[1]
+    item_indices = None
+
+    if use_interacted_items == True:
+        item_indices = interaction_matrix[user_index].nonzero()[1]
+    
 
     # Predict ratings for the items the user has interacted with
     item_predictions = recommender.predict(user_idx=user_index, top_k=k, item_indices=item_indices)
